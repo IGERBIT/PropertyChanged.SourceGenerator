@@ -349,6 +349,25 @@ public class DiagnosticReporter
     {
         this.AddDiagnostic(cannotParseConfigBool, (Location?)null, value, key);
     }
+    
+    private static readonly DiagnosticDescriptor nullOrEmptyattributeArgument = CreateDescriptor(
+        "INPC900",
+        "Null or empty attribute argument",
+        "One of arguments of attribute equals null or empty string", DiagnosticSeverity.Error);
+    public void ReportNullOrEmptyArgument(AttributeData attributeData, ISymbol symbol)
+    {
+        this.AddDiagnostic(nullOrEmptyattributeArgument, AttributeLocations(attributeData, symbol));
+    }
+    
+    
+    private static readonly DiagnosticDescriptor pizec = CreateDescriptor(
+        "INPC999",
+        "Unable to resolve depending property name in attribute",
+        "!!!!!! Desc: {0}", DiagnosticSeverity.Info);
+    public void ReportPizdec(string value, Location? location = null)
+    {
+        this.AddDiagnostic(pizec, location, value);
+    }
 
     // INPC numbers are defined out of order!! The next one is not just the one above + 1
 

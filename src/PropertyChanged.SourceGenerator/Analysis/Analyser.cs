@@ -389,8 +389,12 @@ public partial class Analyser
         }
     }
 
-    private static IEnumerable<string?> ExtractAttributeStringParams(AttributeData attribute)
+    private static IEnumerable<string?> ExtractAttributeStringParams(AttributeData attribute, ISymbol symbol, DiagnosticReporter diagnostic)
     {
+        var what = attribute.ApplicationSyntaxReference?.GetSyntax().GetText();
+        
+
+
         IEnumerable<string?> values;
 
         if (attribute.ConstructorArguments.Length == 1 &&
@@ -404,14 +408,56 @@ public partial class Analyser
         }
         else
         {
-            values = attribute.ConstructorArguments
-                .Where(x => x.Kind == TypedConstantKind.Primitive && x.Value is null or string)
-                .Select(x => x.Value)
-                .Cast<string?>();
+            values = ExtractPrimitiveAttributeStringParams(attribute);
         }
+        
+        
+        return values.Select(i =>
+        {
+            CheckDiagnostic(i);
+            return i;
+        });;
 
-        return values;
+
+        void  CheckDiagnostic(string? item)
+        {
+            if(string.IsNullOrEmpty(item)) diagnostic.ReportNullOrEmptyArgument(attribute, symbol);
+        }
     }
+    
+    
+
+    private static IEnumerable<string?> ExtractPrimitiveAttributeStringParams(AttributeData attribute)
+    {
+        int i = 0;
+        string?[]? cachedArguments = null;
+        foreach (var typedConstant in attribute.ConstructorArguments)
+        {
+            if (typedConstant is { Kind: TypedConstantKind.Primitive, Value: null or string })
+            {
+                string? stringValue = (string?)typedConstant.Value;
+                if (string.IsNullOrEmpty(stringValue))
+                    stringValue = LookupNameOfValue() ?? stringValue;
+
+                yield return stringValue;
+            }
+
+            i++;
+        }
+        
+        string? LookupNameOfValue()
+        {
+            if (cachedArguments is null)
+            {
+                if (!DependsOnAttributeNameOfArguments.TryGetValue(attribute, out cachedArguments))
+                    cachedArguments = Array.Empty<string?>();
+            }
+            
+            return i < cachedArguments.Length ? cachedArguments[i] : null;
+        }
+    }
+
+
 
 
     private void EnsureNoUnexpectedAttributes(ISymbol member)

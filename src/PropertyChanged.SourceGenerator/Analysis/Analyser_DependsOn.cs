@@ -13,7 +13,8 @@ namespace PropertyChanged.SourceGenerator.Analysis;
 public partial class Analyser
 {
     private static readonly ImmutableHashSet<IPropertySymbol> emptyPropertyHashSet = ImmutableHashSet<IPropertySymbol>.Empty.WithComparer(SymbolEqualityComparer.Default);
-
+    public static readonly Dictionary<AttributeData, string?[]> DependsOnAttributeNameOfArguments = new Dictionary<AttributeData, string?[]>();
+    
     private void ResolveDependsOn(TypeAnalysis typeAnalysis, Configuration config)
     {
         var lookups = new TypeAnalysisLookups(typeAnalysis);
@@ -37,7 +38,7 @@ public partial class Analyser
     {
         foreach (var attribute in dependsOnAttributes)
         {
-            var dependsOnValues = ExtractAttributeStringParams(attribute);
+            var dependsOnValues = ExtractAttributeStringParams(attribute, member, this.diagnostics).ToArray();
             foreach (string? dependsOn in dependsOnValues)
             {
                 if (string.IsNullOrWhiteSpace(dependsOn))

@@ -17,7 +17,7 @@ public partial class Analyser
             var alsoNotifyAttributes = member.BackingMember.GetAttributes().Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.alsoNotifyAttributeSymbol));
             foreach (var attribute in alsoNotifyAttributes)
             {
-                var alsoNotifyValues = ExtractAttributeStringParams(attribute);
+                var alsoNotifyValues = ExtractAttributeStringParams(attribute, member.BackingMember, this.diagnostics);
 
                 // We only allow them to use the property name. If we didn't, consider:
                 // 1. Derived class has the same property name as base class (shadowed)
